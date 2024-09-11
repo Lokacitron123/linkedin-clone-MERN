@@ -1,7 +1,11 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { signupSchema } from "../utils/validationSchemas/user.validation.schema.js";
+import {
+  loginSchema,
+  signupSchema,
+} from "../utils/validationSchemas/user.validation.schema.js";
+import { sendWelcomeEmail } from "../utils/emails/email.handler.js";
 
 export const signup = async (req, res) => {
   try {
@@ -60,10 +64,52 @@ export const signup = async (req, res) => {
   }
 };
 
-export const login = (req, res) => {
-  res.send("login");
+export const login = async (req, res) => {
+  try {
+    const parsedData = loginSchema.safeParse(req.body);
+    if (!parsedData.success) {
+      return res.status(400).json({ errors: parsedData.error.errors });
+    }
+
+    const { username, password } = parsedData.data;
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid username" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "3d",
+    });
+    res.cookie("jwt-linkedin", token, {
+      httpOnly: true, // XSS prevention
+      maxAge: 3 * 24 * 60 * 60 * 1000,
+      sameSite: "strict", // CSRF prevention
+      secure: process.env.NODE_ENV === "production", // prevents man-in-the-middle attacks
+    });
+
+    res.status(200).json({ message: "User logged in successfully" });
+  } catch (error) {
+    console.error("Error in login controller: ", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const logout = (req, res) => {
-  res.send("logout");
+  res.clearCookie("jwt-linkedin").send("logout");
+  res.json({ message: "Logged out successfully" });
+};
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    res.json(req.user);
+  } catch (error) {
+    console.error("Error in getCurrentUser: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
