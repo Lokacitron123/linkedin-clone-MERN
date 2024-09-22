@@ -17,7 +17,8 @@ import connectionRoutes from "./routes/connection.route.js";
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(express.json()); // parse JSON request bodies
+// Without limit we get payload error "payload is too large"
+app.use(express.json({ limit: "5mb" })); // parse JSON request bodies
 app.use(cookieParser());
 
 // URL routes
