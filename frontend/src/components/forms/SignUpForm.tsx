@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema } from "./zod.schemas";
 import { Eye, EyeOff, Loader } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../lib/axios";
 import toast from "react-hot-toast";
 import { SignUpData } from "./data.types";
@@ -16,14 +16,16 @@ export const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const { mutate: signUpMutation } = useMutation({
     mutationFn: async (data: SignUpData) => {
       const res = await axiosInstance.post("/auth/signup", data);
-
       return res.data;
     },
     onSuccess: () => {
       toast.success("Account created successfully");
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
     onError: (error: AxiosError) => {
       if (error.response) {
@@ -36,14 +38,12 @@ export const SignUpForm = () => {
     },
   });
 
-  // Next: https://youtu.be/Ycg48pVp3SU?t=11485
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
-    resolver: zodResolver(signUpSchema), // Use Zod as resolver
+    resolver: zodResolver(signUpSchema),
   });
 
   const onSubmit: SubmitHandler<FormFields> = (data) => {
@@ -144,7 +144,11 @@ export const SignUpForm = () => {
           disabled={isSubmitting}
           className='btn btn-primary w-full mt-4'
         >
-          {isSubmitting ? <Loader className='w-4 h-4' /> : "Sign Up"}
+          {isSubmitting ? (
+            <Loader className='w-4 h-4 animate-spin' />
+          ) : (
+            "Sign Up"
+          )}
         </button>
       </div>
     </form>

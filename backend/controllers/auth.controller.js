@@ -11,6 +11,8 @@ export const signup = async (req, res) => {
   try {
     const parsedData = signupSchema.safeParse(req.body); // Zod validation
 
+    console.log("parsedData", parsedData);
+
     if (!parsedData.success) {
       return res.status(400).json({ errors: parsedData.error.errors });
     }
@@ -30,18 +32,20 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
+    const user = new User({
       name,
       username,
       email,
       password: hashedPassword,
     });
 
-    await newUser.save();
+    await user.save();
 
-    const token = jwt.sign({ userId: username._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "3d",
     });
+
+    console.log("jwt", token);
     res.cookie("jwt-linkedin", token, {
       httpOnly: true, // XSS prevention
       maxAge: 3 * 24 * 60 * 60 * 1000,

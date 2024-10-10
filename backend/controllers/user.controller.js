@@ -16,6 +16,8 @@ export const getSuggestedConnections = async (req, res) => {
     })
       .select("name username profilePicture headline") // selects these properties
       .limit(3); // selects only 3 suggested users;
+
+    res.json(suggestedUsers);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

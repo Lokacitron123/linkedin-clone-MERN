@@ -38,21 +38,24 @@ export const getPostsFeed = async (req, res) => {
 
 export const createPost = async (req, res) => {
   try {
-    const parsedData = createPostSchema.safeParse(req.body);
+    const { image, content } = req.body;
+    const parsedData = createPostSchema.safeParse(content); // TODO: fix validation to work with zod
+    console.log("logging image", image);
+    console.log("logging content", content);
 
     let newPost;
 
-    if (parsedData.data.image) {
+    if (image) {
       const result = await cloudinary.uploader.upload(image);
       newPost = new Post({
         author: req.user._id,
-        content: parsedData.data.content,
+        content: content,
         image: result.url,
       });
     } else {
       newPost = new Post({
         author: req.user._id,
-        content: parsedData.data.content,
+        content: content,
       });
     }
 
