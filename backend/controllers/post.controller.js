@@ -15,7 +15,7 @@ export const getPostsFeed = async (req, res) => {
     // $in: Matches any of the values that are specified in an array
     // In this case, it checks if the author is one of the user's connections
     const posts = await Post.find({
-      author: { $in: req.user.connections },
+      author: { $in: [...req.user.connections, req.user._id] },
     })
       // Populate the "author" field with the specified fields from the User model
       // Populate will replace the ObjectId in "author" with the actual user data (name, username, profilePicture, headline)

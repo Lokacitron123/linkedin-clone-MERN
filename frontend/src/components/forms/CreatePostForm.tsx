@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { createPostSchema } from "./zod.schemas";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreatePostData } from "./data.types";
 import { axiosInstance } from "../../lib/axios";
 import toast from "react-hot-toast";
@@ -13,6 +13,8 @@ import { Image, Loader } from "lucide-react";
 export type CreatePostFields = z.infer<typeof createPostSchema>;
 
 export const CreatePostForm = () => {
+  const queryClient = useQueryClient();
+
   const [imagePreview, setImagePreview] = useState<any>(null);
 
   const {
@@ -26,8 +28,6 @@ export const CreatePostForm = () => {
 
   const { mutate: CreatePostMutation } = useMutation({
     mutationFn: async (postData: CreatePostData) => {
-      console.log("logging postData", postData);
-
       const res = await axiosInstance.post("/posts/create", postData, {
         headers: {
           "Content-Type": "application/json",
@@ -40,6 +40,7 @@ export const CreatePostForm = () => {
       reset();
       setImagePreview(null);
       toast.success("Post created successfully");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (error: AxiosError) => {
       toast.error(error.response?.data.message || "Failed to create post");
@@ -47,8 +48,6 @@ export const CreatePostForm = () => {
   });
 
   const onSubmit: SubmitHandler<CreatePostFields> = async (data) => {
-    console.log("Submit triggered!");
-    console.log("Full form data from watch() inside onSubmit: ", watch());
     try {
       CreatePostMutation(data);
     } catch (error) {
@@ -61,14 +60,10 @@ export const CreatePostForm = () => {
 
     if (file) {
       const image = await readFileAsDataURL(file);
-      console.log("logging iamge after readfile: ", image);
+
       setValue("image", image); // Update the form value with the selected image(file);
     }
 
-    console.log(
-      "Full form data from watch() inside handleImageChange:",
-      watch()
-    );
     if (file) {
       readFileAsDataURL(file).then(setImagePreview);
     } else {

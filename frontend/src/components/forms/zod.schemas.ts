@@ -36,5 +36,5 @@ export const createPostSchema = z.object({
     .max(500, { message: "Content is limited to 500 characters" }),
 
   // image: imageFileSchema,
-  image: z.string().nullable(),
+  image: z.string().nullable().optional(),
 });
