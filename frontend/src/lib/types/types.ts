@@ -14,7 +14,7 @@ export interface Education {
 }
 
 export interface User {
-  id: string; // For ObjectId
+  _id: string; // For ObjectId
   name: string;
   username: string;
   email: string;
@@ -39,8 +39,8 @@ export interface Comment {
 }
 
 export interface Post {
-  id: string; // For ObjectId
-  author: string; // User ID
+  _id: string; // For ObjectId
+  author: User; // User ID
   content?: string;
   image?: string;
   likes: string[]; // List of user ids
@@ -52,7 +52,7 @@ export interface Post {
 export type NotificationType = "like" | "comment" | "connectionAccepted";
 
 export interface Notification {
-  id: string; // For ObjectId
+  _id: string; // For ObjectId
   recipient: string; // User ID
   type: NotificationType;
   relatedUser?: string; // User ID
@@ -65,7 +65,7 @@ export interface Notification {
 export type ConnectionStatus = "pending" | "accepted" | "rejected";
 
 export interface ConnectionRequest {
-  id: string; // For ObjectId
+  _id: string; // For ObjectId
   sender: string; // User ID
   recipient: string; // User ID
   status: ConnectionStatus;

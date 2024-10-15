@@ -78,7 +78,7 @@ export const deletePost = async (req, res) => {
     }
 
     // Check if the user is the author of the post
-    if (post.author.toString() !== userId) {
+    if (post.author.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
